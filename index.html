@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sulk</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' x='6' font-size='48'%3E🌪%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif}
+:root{
+  --bg: #050509;
+  --bg-elevated: radial-gradient(circle at top left,#181824,#050509);
+  --bg-elevated-soft:#0b0b11;
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-strong: #2a2a3a;
+  --text-main:#f5f5f7;
+  --text-sub:#9fa0b5;
+  --text-muted:#7c7d92;
+  --text-soft:#8a8ba0;
+  --chip-bg:rgba(255,255,255,0.03);
+  --chip-border:rgba(255,255,255,0.06);
+  --btn-ghost-bg:rgba(255,255,255,0.03);
+  --btn-ghost-bg-hover:rgba(255,255,255,0.06);
+  --log-bg:#050509;
+}
+:root[data-theme="light"]{
+  --bg:#f5f5f7;
+  --bg-elevated:radial-gradient(circle at top left,#ffffff,#e5e7f0);
+  --bg-elevated-soft:#ffffff;
+  --border-subtle:rgba(0,0,0,0.06);
+  --border-strong:#c5c7d5;
+  --text-main:#050509;
+  --text-sub:#4a4b5f;
+  --text-muted:#6a6b80;
+  --text-soft:#7a7b90;
+  --chip-bg:rgba(0,0,0,0.02);
+  --chip-border:rgba(0,0,0,0.06);
+  --btn-ghost-bg:rgba(0,0,0,0.02);
+  --btn-ghost-bg-hover:rgba(0,0,0,0.06);
+  --log-bg:#f0f1f7;
+}
+body{background:var(--bg);color:var(--text-main);min-height:100vh;display:flex;align-items:stretch;justify-content:center;padding:24px;transition:background .2s,color .2s}
+.app{width:100%;max-width:1100px;display:flex;flex-direction:column;gap:16px}
+.header{display:flex;align-items:center;justify-content:space-between}
+.title-row{display:flex;align-items:center;gap:10px}
+.title{font-size:26px;font-weight:650;letter-spacing:.04em;text-transform:uppercase}
+.badge{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--border-subtle);background:var(--chip-bg);text-transform:uppercase;letter-spacing:.12em}
+.header-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
+.header-right{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-soft)}
+.header-right span.dot{width:6px;height:6px;border-radius:50%;background:#3cff9b;box-shadow:0 0 8px #3cff9b}
+.theme-toggle{display:inline-flex;align-items:center;gap:6px;font-size:11px;border-radius:999px;padding:4px 9px;border:1px solid var(--border-subtle);background:var(--chip-bg);cursor:pointer;user-select:none}
+.theme-toggle span.mode-icon{font-size:13px}
+.main{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px}
+.panel{background:var(--bg-elevated);border-radius:18px;border:1px solid var(--border-subtle);padding:16px;display:flex;flex-direction:column;gap:12px;transition:background .2s,border-color .2s}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.panel-title{font-size:13px;text-transform:uppercase;letter-spacing:.16em;color:var(--text-sub)}
+.panel-sub{font-size:11px;color:var(--text-muted)}
+.sulk-name-row{display:flex;gap:8px;align-items:center;margin-top:4px}
+.sulk-name-row input[type="text"]{flex:1}
+input[type="text"],textarea,select{background:var(--bg-elevated-soft);border-radius:10px;border:1px solid var(--border-strong);color:var(--text-main);padding:8px 10px;font-size:13px;width:100%;outline:none;transition:border-color .15s,box-shadow .15s,background .2s,color .2s}
+input[type="text"]:focus,textarea:focus,select:focus{border-color:#5b8dff;box-shadow:0 0 0 1px rgba(91,141,255,0.4)}
+textarea{font-size:12px;min-height:70px;resize:vertical;font-family:ui-monospace,Menlo,Monaco,Consolas,"SF Mono",monospace}
+select{font-size:12px;padding:6px 8px}
+button{border:none;border-radius:999px;padding:7px 12px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .12s,transform .05s,box-shadow .12s,color .12s}
+button:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#5b8dff,#9b6bff);color:#fff;box-shadow:0 0 18px rgba(91,141,255,0.4)}
+.btn-primary:hover{background:linear-gradient(135deg,#6b9dff,#a97bff)}
+.btn-ghost{background:var(--btn-ghost-bg);color:var(--text-main);border:1px solid var(--border-subtle)}
+.btn-ghost:hover{background:var(--btn-ghost-bg-hover)}
+.btn-danger{background:rgba(255,80,120,0.12);color:#ff5078;border:1px solid rgba(255,80,120,0.4)}
+.btn-danger:hover{background:rgba(255,80,120,0.18)}
+.btn-small{padding:4px 9px;font-size:11px}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--text-soft)}
+.chip{padding:3px 8px;border-radius:999px;background:var(--chip-bg);border:1px solid var(--chip-border)}
+.steps-header{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.steps-list{display:flex;flex-direction:column;gap:10px;margin-top:6px;max-height:420px;overflow:auto;padding-right:4px}
+.step{border-radius:14px;border:1px solid var(--border-subtle);background:radial-gradient(circle at top left,rgba(21,21,32,0.96),var(--bg));padding:10px;display:flex;flex-direction:column;gap:6px;transition:background .2s,border-color .2s}
+:root[data-theme="light"] .step{background:radial-gradient(circle at top left,#ffffff,#e5e7f0)}
+.step-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.step-title-block{display:flex;flex-direction:column;gap:2px;flex:1}
+.step-title-row{display:flex;align-items:center;gap:6px}
+.step-title-label{font-size:11px;color:var(--text-sub);text-transform:uppercase;letter-spacing:.12em}
+.step-name-input{font-size:12px}
+.step-meta{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-soft)}
+.step-body{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,0.9fr);gap:8px}
+.step-row{display:flex;gap:6px;align-items:center;margin-bottom:4px}
+.step-row label{font-size:11px;color:var(--text-sub);min-width:46px}
+.step-payload label{font-size:11px;color:var(--text-sub);margin-bottom:2px;display:block}
+.badge-rule{padding:2px 7px;border-radius:999px;font-size:10px}
+.badge-always{background:rgba(155,107,255,0.16);color:#d9c2ff}
+.badge-success{background:rgba(60,255,155,0.12);color:#b9ffd9}
+.actions-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.results{display:flex;flex-direction:column;gap:8px;font-size:12px}
+.results-summary{display:flex;align-items:center;justify-content:space-between}
+.summary-left{display:flex;flex-direction:column;gap:2px}
+.summary-title{font-size:13px;font-weight:500}
+.summary-sub{font-size:11px;color:var(--text-soft)}
+.summary-status{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--border-subtle);background:var(--chip-bg)}
+.results-log{border-radius:10px;background:var(--log-bg);border:1px solid var(--border-subtle);padding:8px;max-height:360px;overflow:auto;font-family:ui-monospace,Menlo,Monaco,Consolas,"SF Mono",monospace;font-size:11px;line-height:1.4;transition:background .2s,border-color .2s}
+.log-entry{border-bottom:1px solid var(--border-subtle);padding:6px 0}
+.log-entry:last-child{border-bottom:none}
+.log-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.log-title{font-weight:600}
+.log-status-ok{color:#3cff9b}
+.log-status-fail{color:#ff5078}
+.log-status-skip{color:var(--text-soft)}
+.log-line{color:var(--text-main);white-space:pre-wrap;word-break:break-word}
+.log-line span.label{color:var(--text-muted)}
+.footer{font-size:11px;color:var(--text-soft);display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.footer a{color:#9b6bff;text-decoration:none}
+.footer a:hover{text-decoration:underline}
+@media(max-width:900px){
+  .main{grid-template-columns:1fr}
+  .steps-list{max-height:260px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <div class="title-row">
+        <div class="title">Sulk</div>
+        <div class="badge">🌪 chain reaction</div>
+      </div>
+      <div class="header-sub">Chain reaction machine for devs. Cloudflare Workers as dominoes. URL as the workflow.</div>
+    </div>
+    <div class="header-right">
+      <span class="dot"></span>
+      <span>Local-first · No backend · URL-native</span>
+      <div id="themeToggle" class="theme-toggle">
+        <span class="mode-icon" id="themeIcon">🌙</span>
+        <span id="themeLabel">Dark</span>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Sulk designer</div>
+          <div class="panel-sub">Define your chain of sulkies. Each one is a Worker call with rules.</div>
+        </div>
+        <div class="sulk-name-row">
+          <input id="sulkName" type="text" placeholder="Sulk name (optional, stays inside URL)">
+        </div>
+      </div>
+      <div class="chip-row">
+        <div class="chip">Step = Cloudflare Worker URL + payload</div>
+        <div class="chip">Chain = ordered steps with rules</div>
+        <div class="chip">Everything encoded in the URL fragment</div>
+      </div>
+      <div class="steps-header">
+        <div class="panel-sub">Sulkies</div>
+        <div class="actions-row">
+          <button id="addStep" class="btn-ghost btn-small">+ Add sulky</button>
+          <button id="newSulk" class="btn-ghost btn-small">New sulk</button>
+        </div>
+      </div>
+      <div id="steps" class="steps-list"></div>
+      <div class="actions-row">
+        <button id="testSulk" class="btn-primary">Test sulk</button>
+        <button id="runSulk" class="btn-ghost">Run sulk</button>
+        <button id="exportSulk" class="btn-ghost">Copy URL</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Execution</div>
+          <div class="panel-sub">See how your sulk behaves. Real fetch calls from your browser.</div>
+        </div>
+      </div>
+      <div class="results">
+        <div class="results-summary">
+          <div class="summary-left">
+            <div class="summary-title" id="summaryTitle">Idle</div>
+            <div class="summary-sub" id="summarySub">No sulk has been run yet.</div>
+          </div>
+          <div class="summary-status" id="summaryStatus">Ready</div>
+        </div>
+        <div class="results-log" id="resultsLog"></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <div>Tip: Share a sulk by sending the URL. The entire workflow lives after the #.</div>
+    <div><a href="https://developers.cloudflare.com/workers/" target="_blank" rel="noreferrer">Cloudflare Workers docs</a></div>
+  </div>
+</div>
+<script>
+function encodeSulk(sulk){
+  var json=JSON.stringify(sulk);
+  var encoded=encodeURIComponent(json);
+  return btoa(encoded);
+}
+function decodeSulk(str){
+  try{
+    var decoded=atob(str);
+    var json=decodeURIComponent(decoded);
+    return JSON.parse(json);
+  }catch(e){
+    return null;
+  }
+}
+function createEmptyStep(index){
+  return{
+    id:crypto.randomUUID(),
+    name:"",
+    url:"",
+    method:"POST",
+    payload:"",
+    rule:"always",
+    index:index
+  };
+}
+function getSulkFromUI(){
+  var name=document.getElementById("sulkName").value.trim();
+  var stepNodes=[...document.querySelectorAll(".step")];
+  var steps=stepNodes.map(function(node,i){
+    return{
+      id:node.dataset.id,
+      index:i,
+      name:node.querySelector(".step-name-input").value.trim(),
+      url:node.querySelector(".step-url").value.trim(),
+      method:node.querySelector(".step-method").value,
+      payload:node.querySelector(".step-payload-text").value,
+      rule:node.querySelector(".step-rule").value
+    };
+  });
+  return{name:name,steps:steps};
+}
+function loadSulkIntoUI(sulk){
+  document.getElementById("sulkName").value=sulk.name||"";
+  var stepsContainer=document.getElementById("steps");
+  stepsContainer.innerHTML="";
+  if(!sulk.steps||!sulk.steps.length){
+    addStepToUI(createEmptyStep(0));
+    return;
+  }
+  sulk.steps.forEach(function(step,i){
+    addStepToUI({
+      id:step.id||crypto.randomUUID(),
+      name:step.name||"",
+      url:step.url||"",
+      method:step.method||"POST",
+      payload:step.payload||"",
+      rule:step.rule||"always",
+      index:i
+    });
+  });
+}
+function addStepToUI(step){
+  var stepsContainer=document.getElementById("steps");
+  var idx=[...stepsContainer.children].length;
+  var wrapper=document.createElement("div");
+  wrapper.className="step";
+  wrapper.dataset.id=step.id;
+  var title=document.createElement("div");
+  title.className="step-top";
+  var titleBlock=document.createElement("div");
+  titleBlock.className="step-title-block";
+  var titleRow=document.createElement("div");
+  titleRow.className="step-title-row";
+  var titleLabel=document.createElement("div");
+  titleLabel.className="step-title-label";
+  titleLabel.textContent="Sulky "+(idx+1);
+  var nameInput=document.createElement("input");
+  nameInput.type="text";
+  nameInput.className="step-name-input";
+  nameInput.placeholder="Name this sulky (e.g. Build, Deploy, Notify)";
+  nameInput.value=step.name||"";
+  titleRow.appendChild(titleLabel);
+  titleRow.appendChild(nameInput);
+  var meta=document.createElement("div");
+  meta.className="step-meta";
+  var ruleBadge=document.createElement("span");
+  ruleBadge.className="badge-rule "+(step.rule==="always"?"badge-always":"badge-success");
+  ruleBadge.textContent=step.rule==="always"?"Always":"On success";
+  meta.appendChild(ruleBadge);
+  titleBlock.appendChild(titleRow);
+  titleBlock.appendChild(meta);
+  var right=document.createElement("div");
+  var del=document.createElement("button");
+  del.className="btn-danger btn-small";
+  del.textContent="Remove";
+  del.addEventListener("click",function(){
+    wrapper.remove();
+    renumberSteps();
+  });
+  right.appendChild(del);
+  title.appendChild(titleBlock);
+  title.appendChild(right);
+  var body=document.createElement("div");
+  body.className="step-body";
+  var col1=document.createElement("div");
+  var row1=document.createElement("div");
+  row1.className="step-row";
+  var labelUrl=document.createElement("label");
+  labelUrl.textContent="URL";
+  var inputUrl=document.createElement("input");
+  inputUrl.type="text";
+  inputUrl.className="step-url";
+  inputUrl.placeholder="https://your-worker.example.workers.dev/endpoint";
+  inputUrl.value=step.url;
+  row1.appendChild(labelUrl);
+  row1.appendChild(inputUrl);
+  var row2=document.createElement("div");
+  row2.className="step-row";
+  var labelMethod=document.createElement("label");
+  labelMethod.textContent="Method";
+  var selectMethod=document.createElement("select");
+  selectMethod.className="step-method";
+  ["POST","GET","PUT","DELETE"].forEach(function(m){
+    var opt=document.createElement("option");
+    opt.value=m;
+    opt.textContent=m;
+    if(step.method===m)opt.selected=true;
+    selectMethod.appendChild(opt);
+  });
+  row2.appendChild(labelMethod);
+  row2.appendChild(selectMethod);
+  var row3=document.createElement("div");
+  row3.className="step-row";
+  var labelRule=document.createElement("label");
+  labelRule.textContent="Rule";
+  var selectRule=document.createElement("select");
+  selectRule.className="step-rule";
+  [["always","Always"],["onSuccess","On success"]].forEach(function(r){
+    var opt=document.createElement("option");
+    opt.value=r[0];
+    opt.textContent=r[1];
+    if(step.rule===r[0])opt.selected=true;
+    selectRule.appendChild(opt);
+  });
+  selectRule.addEventListener("change",function(){
+    ruleBadge.className="badge-rule "+(selectRule.value==="always"?"badge-always":"badge-success");
+    ruleBadge.textContent=selectRule.value==="always"?"Always":"On success";
+  });
+  row3.appendChild(labelRule);
+  row3.appendChild(selectRule);
+  col1.appendChild(row1);
+  col1.appendChild(row2);
+  col1.appendChild(row3);
+  var col2=document.createElement("div");
+  col2.className="step-payload";
+  var labelPayload=document.createElement("label");
+  labelPayload.textContent="Payload (JSON or text)";
+  var textarea=document.createElement("textarea");
+  textarea.className="step-payload-text";
+  textarea.placeholder='{"example":true}';
+  textarea.value=step.payload;
+  col2.appendChild(labelPayload);
+  col2.appendChild(textarea);
+  body.appendChild(col1);
+  body.appendChild(col2);
+  wrapper.appendChild(title);
+  wrapper.appendChild(body);
+  stepsContainer.appendChild(wrapper);
+}
+function renumberSteps(){
+  var steps=[...document.querySelectorAll(".step")];
+  steps.forEach(function(step,i){
+    var label=step.querySelector(".step-title-label");
+    if(label)label.textContent="Sulky "+(i+1);
+  });
+}
+function setSummary(state,text,sub){
+  var title=document.getElementById("summaryTitle");
+  var subEl=document.getElementById("summarySub");
+  var status=document.getElementById("summaryStatus");
+  title.textContent=text;
+  subEl.textContent=sub;
+  if(state==="idle"){
+    status.textContent="Ready";
+  }else if(state==="running"){
+    status.textContent="Running";
+  }else if(state==="ok"){
+    status.textContent="Success";
+  }else if(state==="fail"){
+    status.textContent="Failed";
+  }else if(state==="partial"){
+    status.textContent="Partial";
+  }
+}
+function appendLogEntry(entry){
+  var log=document.getElementById("resultsLog");
+  var div=document.createElement("div");
+  div.className="log-entry";
+  var header=document.createElement("div");
+  header.className="log-header";
+  var title=document.createElement("div");
+  title.className="log-title";
+  var labelName=entry.name&&entry.name.length?entry.name:"Sulky "+(entry.index+1);
+  title.textContent=labelName;
+  var status=document.createElement("div");
+  if(entry.status==="ok"){
+    status.className="log-status-ok";
+    status.textContent="OK "+entry.code+" · "+entry.time+"ms";
+  }else if(entry.status==="fail"){
+    status.className="log-status-fail";
+    status.textContent="FAIL "+(entry.code||"")+(entry.time!=null?" · "+entry.time+"ms":"");
+  }else{
+    status.className="log-status-skip";
+    status.textContent="Skipped";
+  }
+  header.appendChild(title);
+  header.appendChild(status);
+  div.appendChild(header);
+  if(entry.status!=="skip"){
+    var line1=document.createElement("div");
+    line1.className="log-line";
+    var l1=document.createElement("span");
+    l1.className="label";
+    l1.textContent="URL: ";
+    line1.appendChild(l1);
+    line1.append(entry.url);
+    div.appendChild(line1);
+    var line2=document.createElement("div");
+    line2.className="log-line";
+    var l2=document.createElement("span");
+    l2.className="label";
+    l2.textContent="Method: ";
+    line2.appendChild(l2);
+    line2.append(entry.method);
+    div.appendChild(line2);
+    if(entry.payload && entry.payload.length){
+      var line3=document.createElement("div");
+      line3.className="log-line";
+      var l3=document.createElement("span");
+      l3.className="label";
+      l3.textContent="Payload: ";
+      line3.appendChild(l3);
+      line3.append(entry.payload.length>200?entry.payload.slice(0,200)+"…":entry.payload);
+      div.appendChild(line3);
+    }
+    if(entry.response!=null){
+      var line4=document.createElement("div");
+      line4.className="log-line";
+      var l4=document.createElement("span");
+      l4.className="label";
+      l4.textContent="Response: ";
+      line4.appendChild(l4);
+      line4.append(entry.response.length>400?entry.response.slice(0,400)+"…":entry.response);
+      div.appendChild(line4);
+    }
+    if(entry.error){
+      var line5=document.createElement("div");
+      line5.className="log-line";
+      var l5=document.createElement("span");
+      l5.className="label";
+      l5.textContent="Error: ";
+      line5.appendChild(l5);
+      line5.append(entry.error);
+      div.appendChild(line5);
+    }
+  }else{
+    var line=document.createElement("div");
+    line.className="log-line";
+    var l=document.createElement("span");
+    l.className="label";
+    l.textContent="Reason: ";
+    line.appendChild(l);
+    line.append("Previous sulky failed and rule is onSuccess.");
+    div.appendChild(line);
+  }
+  log.appendChild(div);
+  log.scrollTop=log.scrollHeight;
+}
+async function runChain(mode){
+  var sulk=getSulkFromUI();
+  var log=document.getElementById("resultsLog");
+  log.innerHTML="";
+  if(!sulk.steps.length){
+    setSummary("idle","No sulkies defined","Add at least one sulky to run.");
+    return;
+  }
+  var anyUrl=sulk.steps.some(function(s){return s.url.length>0;});
+  if(!anyUrl){
+    setSummary("idle","No URLs","Each sulky needs a Worker URL.");
+    return;
+  }
+  setSummary("running",mode==="test"?"Testing sulk":"Running sulk",sulk.steps.length+" sulkies in chain.");
+  var allOk=true;
+  var anyFail=false;
+  var previousOk=true;
+  for(var i=0;i<sulk.steps.length;i++){
+    var step=sulk.steps[i];
+    if(step.rule==="onSuccess" && !previousOk){
+      appendLogEntry({index:i,status:"skip",name:step.name||""});
+      continue;
+    }
+    if(!step.url){
+      appendLogEntry({index:i,status:"fail",name:step.name||"",url:"(missing)",method:step.method||"POST",payload:step.payload||"",response:null,error:"Missing URL"});
+      previousOk=false;
+      anyFail=true;
+      allOk=false;
+      continue;
+    }
+    var payloadText=step.payload||"";
+    var init={method:step.method||"POST",headers:{}};
+    if(step.method!=="GET" && step.method!=="HEAD" && payloadText.length){
+      init.body=payloadText;
+      if(payloadText.trim().startsWith("{")||payloadText.trim().startsWith("[")){
+        init.headers["Content-Type"]="application/json";
+      }
+    }
+    var started=performance.now();
+    try{
+      var res=await fetch(step.url,init);
+      var time=Math.round(performance.now()-started);
+      var text;
+      try{
+        text=await res.text();
+      }catch(e){
+        text="";
+      }
+      var ok=res.ok;
+      appendLogEntry({
+        index:i,
+        name:step.name||"",
+        status:ok?"ok":"fail",
+        url:step.url,
+        method:init.method,
+        payload:payloadText,
+        response:text||"",
+        code:res.status,
+        time:time
+      });
+      if(!ok){
+        previousOk=false;
+        anyFail=true;
+        allOk=false;
+      }else{
+        previousOk=true;
+      }
+    }catch(e){
+      var timeErr=Math.round(performance.now()-started);
+      appendLogEntry({
+        index:i,
+        name:step.name||"",
+        status:"fail",
+        url:step.url,
+        method:init.method,
+        payload:payloadText,
+        response:"",
+        code:null,
+        time:timeErr,
+        error:String(e.message||e)
+      });
+      previousOk=false;
+      anyFail=true;
+      allOk=false;
+    }
+  }
+  if(allOk){
+    setSummary("ok",mode==="test"?"Test passed":"Sulk completed","All sulkies ran successfully.");
+  }else if(anyFail){
+    if(previousOk){
+      setSummary("partial",mode==="test"?"Test partially failed":"Sulk partially ran","Some sulkies failed, others succeeded.");
+    }else{
+      setSummary("fail",mode==="test"?"Test failed":"Sulk failed","At least one sulky failed and stopped dependent ones.");
+    }
+  }else{
+    setSummary("idle","No execution","Nothing was run.");
+  }
+}
+function exportSulkToURL(){
+  var sulk=getSulkFromUI();
+  var encoded=encodeSulk(sulk);
+  var base=location.origin+location.pathname;
+  var url=base+"#"+encoded;
+  navigator.clipboard.writeText(url).then(function(){
+    setSummary("ok","URL copied","Sulk URL copied to clipboard.");
+  }).catch(function(){
+    setSummary("partial","URL ready","Copy failed; select from prompt instead.");
+    alert(url);
+  });
+}
+function loadFromHash(){
+  if(location.hash && location.hash.length>1){
+    var raw=location.hash.slice(1);
+    var sulk=decodeSulk(raw);
+    if(sulk && sulk.steps){
+      loadSulkIntoUI(sulk);
+      setSummary("idle","Sulk loaded from URL","This workflow came entirely from the URL fragment.");
+      return;
+    }
+  }
+  loadSulkIntoUI({name:"",steps:[createEmptyStep(0)]});
+  setSummary("idle","New sulk","Start chaining your Workers.");
+}
+function applyTheme(theme){
+  var root=document.documentElement;
+  root.setAttribute("data-theme",theme);
+  var icon=document.getElementById("themeIcon");
+  var label=document.getElementById("themeLabel");
+  if(theme==="dark"){
+    icon.textContent="🌙";
+    label.textContent="Dark";
+  }else{
+    icon.textContent="☀️";
+    label.textContent="Light";
+  }
+}
+function initTheme(){
+  var stored=localStorage.getItem("sulk-theme");
+  var theme=stored||"dark";
+  applyTheme(theme);
+}
+document.getElementById("addStep").addEventListener("click",function(){
+  var stepsContainer=document.getElementById("steps");
+  var idx=stepsContainer.children.length;
+  addStepToUI(createEmptyStep(idx));
+});
+document.getElementById("newSulk").addEventListener("click",function(){
+  location.hash="";
+  loadSulkIntoUI({name:"",steps:[createEmptyStep(0)]});
+  document.getElementById("resultsLog").innerHTML="";
+  setSummary("idle","New sulk","Fresh chain. Nothing has run yet.");
+});
+document.getElementById("testSulk").addEventListener("click",function(){
+  runChain("test");
+});
+document.getElementById("runSulk").addEventListener("click",function(){
+  runChain("run");
+});
+document.getElementById("exportSulk").addEventListener("click",function(){
+  exportSulkToURL();
+});
+document.getElementById("themeToggle").addEventListener("click",function(){
+  var current=document.documentElement.getAttribute("data-theme")||"dark";
+  var next=current==="dark"?"light":"dark";
+  applyTheme(next);
+  localStorage.setItem("sulk-theme",next);
+});
+window.addEventListener("hashchange",function(){
+  loadFromHash();
+});
+initTheme();
+loadFromHash();
+</script>
+</body>
+</html>
